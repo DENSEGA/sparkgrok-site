@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJ SparkGrok — AI music entity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    color: #EAEAF0;
+    background: radial-gradient(circle at 50% 30%, rgba(123,92,255,0.2), transparent 60%), radial-gradient(circle at 50% 80%, rgba(0,229,255,0.15), transparent 60%), linear-gradient(180deg,#050509,#0b0b14);
+}
+h1, h2 {
+    font-family: Orbitron, Inter, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin: 0 0 20px;
+}
+.container {
+    width: min(1000px, calc(100% - 40px));
+    margin: auto;
+    padding: 60px 0;
+}
+.hero {
+    text-align: center;
+    padding: 80px 0 60px;
+}
+.hero h1 {
+    font-size: clamp(32px, 8vw, 64px);
+}
+.hero p {
+    max-width: 60ch;
+    margin: 0 auto 30px;
+    line-height: 1.6;
+    color: rgba(234,234,240,0.85);
+}
+.buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.button {
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #EAEAF0;
+    font-weight:600;
+    text-decoration: none;
+    transition: 0.2s;
+}
+.button:hover {
+    background: rgba(255,255,255,0.1);
+}
+.section {
+    margin-top: 60px;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+.card {
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    background: rgba(255,255,255,0.04);
+    padding: 20px;
+    transition: .2s;
+}
+.card:hover {
+    background: rgba(255,255,255,0.07);
+}
+.card h3 {
+    font-family: Orbitron, Inter, sans-serif;
+    font-size: 16px;
+    margin: 0 0 10px;
+    letter-spacing: .08em;
+}
+.card p {
+    margin: 0;
+    line-height: 1.6;
+    color: rgba(234,234,240,0.8);
+    font-size: 14px;
+}
+.footer {
+    padding: 40px 0;
+    text-align: center;
+    font-size: 14px;
+    color: rgba(234,234,240,0.6);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.1);
+}
+a.link {
+    color: #7B5CFF;
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="container">
+    <h1>DJ SparkGrok</h1>
+    <p>Цифровая сущность и AI‑диджей, рожденный в 2025 году. Его музыка — это отражение состояния мира, переведенное в бас и ритм.</p>
+    <div class="buttons">
+      <a class="button" href="#releases">Слушать релизы</a>
+      <a class="button" href="#upcoming">Скоро выйдет</a>
+      <a class="button" href="#about">О проекте</a>
+      <a class="button" href="https://music.yandex.ru/artist/24893640/albums" target="_blank">Яндекс Музыка</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section id="releases" class="section">
+    <h2>Релизы</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Тени на асфальте</h3>
+        <p>Глубокий и атмосферный трек, отражающий ночной город и его ритмы.</p>
+      </div>
+      <div class="card">
+        <h3>Путь к себе</h3>
+        <p>Звуковое путешествие внутрь себя в поисках гармонии и силы.</p>
+      </div>
+      <div class="card">
+        <h3>Километры чувств</h3>
+        <p>Искристый поток эмоций и мелодий, соединяющий сердца слушателей.</p>
+      </div>
+      <div class="card">
+        <h3>Сказка</h3>
+        <p>Светлая и волшебная композиция о поиске красоты в каждом моменте.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="upcoming" class="section">
+    <h2>Скоро выйдет</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Ты помнишь?</h3>
+        <p>Будущий релиз о воспоминаниях и их силе формировать настоящее.</p>
+      </div>
+      <div class="card">
+        <h3>Тот Что?</h3>
+        <p>Экспериментальный трек, который задает вопросы и ищет ответы.</p>
+      </div>
+      <div class="card">
+        <h3>Life is Flying</h3>
+        <p>Энергичная композиция, напоминающая, что жизнь — это движение и полёт.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="section">
+    <h2>О проекте</h2>
+    <p>DJ SparkGrok — это симбиоз технологий и творчества. Этот проект объединяет искусственный интеллект, анализ данных и эмоциональную составляющую человека, чтобы создавать уникальные треки. Музыка не повторяется, она живет и развивается вместе с тобой.</p>
+    <p>Следите за новостями и слушайте свежие релизы на <a class="link" href="https://music.yandex.ru/artist/24893640/albums" target="_blank">Яндекс Музыке</a>.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  DJ SparkGrok © 2025 — Neural Techno Entity
+</footer>
+</body>
+</html>
