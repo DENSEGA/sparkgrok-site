@@ -111,7 +111,7 @@ background:radial-gradient(circle at 30% 30%, rgba(210,60,255,.22), rgba(0,0,0,.
     <div class="menu">
       <div>
         <label>Номер будущего тиража</label><br/>
-        <input id="drawId" inputmode="numeric" placeholder="например: 16007"/>
+        <input id="drawId" inputmode="numeric" placeholder="например: 16008"/>
       </div>
       <button id="goBtn" type="button">Получить 6 чисел</button>
       <button id="repBtn" type="button">Показать отчёт тут</button>
@@ -153,6 +153,11 @@ background:radial-gradient(circle at 30% 30%, rgba(210,60,255,.22), rgba(0,0,0,.
         <div>
           <label>Выпавшие 6 чисел</label><br/>
           <input id="resNums" placeholder="пример: 1 2 8 15 16 30"/>
+        </div>
+        <div>
+          <label>Мои 6 чисел (если выбирал вручную)</label><br/>
+          <input id="myNums" placeholder="пример: 3 13 18 30 33 41"/>
+
         </div>
         <button id="saveResBtn" type="button">Сохранить результат</button>
         <button id="clearResBtn" type="button">Очистить результаты</button>
@@ -214,7 +219,8 @@ function mixSeed(base){
    "Добавь результат в код" — фиксируем известный тираж 16007.
 */
 const DRAW_RESULTS = {
-  "16007": [1,2,8,15,16,30]
+  "16007": [1,2,8,15,16,30],
+  "16008": [9,11,23,28,30,42]
 };
 let LAST_TICKET_NUMS = null;
 
@@ -5280,7 +5286,7 @@ const ORIGINAL_ARCHIVE_RAW = `11007	1	6	21	25	29	42
 16006	3	15	23	38	39	41`;
 let ARCHIVE_RAW = ORIGINAL_ARCHIVE_RAW;
 let ARCHIVE = [];
-let STATS = {freq:new Array(46).fill(0), total:0};
+let STATS = {freq:new Array(46).fill(0), freqRecency:new Array(46).fill(0), pairs:new Map(), total:0};
 const LS_KEY = "denis_6x45_archive_override_v3";
 
 function parseArchive(raw){
@@ -5301,6 +5307,32 @@ function parseArchive(raw){
   }
   return draws;
 }
+
+function computeRecencyFreq(archive){
+  const freq = new Array(46).fill(0);
+  const n = archive.length;
+  if(n===0) return freq;
+  const lambda = 0.006; // сила "свежести"
+  for(let i=0;i<n;i++){
+    const w = Math.exp(-lambda*(n-1-i));
+    const draw = archive[i];
+    for(const x of draw) freq[x] += w;
+  }
+  return freq;
+}
+function computePairCounts(archive){
+  const m = new Map();
+  for(const draw of archive){
+    for(let i=0;i<draw.length;i++){
+      for(let j=i+1;j<draw.length;j++){
+        const a=draw[i], b=draw[j];
+        const k=a+"-"+b;
+        m.set(k, (m.get(k)||0)+1);
+      }
+    }
+  }
+  return m;
+}
 function computeFreq(archive){
   const freq=new Array(46).fill(0);
   let total=0;
@@ -5311,6 +5343,8 @@ function refreshArchive(newRaw){
   ARCHIVE_RAW=(newRaw||"").trim();
   ARCHIVE=parseArchive(ARCHIVE_RAW);
   STATS=computeFreq(ARCHIVE);
+  STATS.freqRecency = computeRecencyFreq(ARCHIVE);
+  STATS.pairs = computePairCounts(ARCHIVE);
   const el=document.getElementById("arcStatus");
   if(el) el.textContent=`ARCHIVE: ${ARCHIVE.length} draws • total numbers=${STATS.total}`;
 }
@@ -5338,12 +5372,17 @@ function makeCosmicSeed(drawId){
   return mixSeed(base);
 }
 function historyWeight(n,mode){
-  const f=STATS.freq[n]||0;
-  const maxF=Math.max(...STATS.freq.slice(1));
-  const minF=Math.min(...STATS.freq.slice(1));
-  if(mode==="cold") return (maxF - f + 1);
-  if(mode==="hot") return (f - minF + 1);
-  return 1;
+  const f = STATS.freq[n] || 0;
+  const fr = STATS.freqRecency[n] || 0;
+  const maxFr = Math.max(...STATS.freqRecency.slice(1));
+  const frN = maxFr>0 ? (fr / maxFr) : 0;
+  const maxF = Math.max(...STATS.freq.slice(1));
+  const minF = Math.min(...STATS.freq.slice(1));
+  const baseHot = (f - minF + 1) * (1 + 0.35*frN);
+  const baseCold = (maxF - f + 1) * (1 + 0.20*(1-frN));
+  if(mode==="cold") return baseCold;
+  if(mode==="hot")  return baseHot;
+  return 1 + 0.15*frN;
 }
 function popScore(set){
   let score=0;
@@ -5363,6 +5402,17 @@ function qualityScore(set){
   const p=parity(set);
   score += Math.min(Math.abs(p.odd-3),Math.abs(p.odd-4))*0.9;
   score += popScore(set)*1.2;
+  
+  let pairPenalty = 0;
+  for(let i=0;i<set.length;i++){
+    for(let j=i+1;j<set.length;j++){
+      const a=set[i], b=set[j];
+      const k=a<b?(a+"-"+b):(b+"-"+a);
+      const c = (STATS.pairs && STATS.pairs.get) ? (STATS.pairs.get(k)||0) : 0;
+      if(c>0) pairPenalty += Math.log(1+c) * 0.35;
+    }
+  }
+  score += pairPenalty;
   return score;
 }
 function buildCandidate(rng,mode){
@@ -5677,12 +5727,15 @@ function renderResultStatus(drawId){
     el.textContent = "RESULT: нет сохранённого результата для этого тиража.";
     return;
   }
-  if(!LAST_TICKET_NUMS){
-    el.textContent = `RESULT: тираж ${drawId} → ${fmt(res)} (твои числа ещё не генерировались в этой сессии)`;
+  const manual = (document.getElementById("myNums") && document.getElementById("myNums").value) ? normalizeSixNums(document.getElementById("myNums").value) : null;
+  const basePick = manual || LAST_TICKET_NUMS;
+
+  if(!basePick){
+    el.textContent = `RESULT: тираж ${drawId} → ${fmt(res)} (твои числа не заданы)`;
     return;
   }
-  const hits = computeHits(LAST_TICKET_NUMS, res);
-  el.textContent = `RESULT: тираж ${drawId} → ${fmt(res)} | твои: ${fmt(LAST_TICKET_NUMS)} | совпадений: ${hits}/6`;
+  const hits = computeHits(basePick, res);
+  el.textContent = `RESULT: тираж ${drawId} → ${fmt(res)} | твои: ${fmt(basePick)} | совпадений: ${hits}/6`;
 }
 
 function saveResult(drawId, numsArr){
